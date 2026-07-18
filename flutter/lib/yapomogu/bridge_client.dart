@@ -64,8 +64,17 @@ class BridgeClient {
       headers: _headers,
       body: jsonEncode(body),
     );
+    if (resp.statusCode >= 400) {
+      String detail;
+      try {
+        final errData = jsonDecode(resp.body) as Map<String, dynamic>;
+        detail = errData['detail']?.toString() ?? resp.body;
+      } catch (_) {
+        detail = resp.body;
+      }
+      throw BridgeException(resp.statusCode, detail);
+    }
     final data = jsonDecode(resp.body) as Map<String, dynamic>;
-    if (resp.statusCode >= 400) throw BridgeException(resp.statusCode, data['detail']?.toString() ?? resp.body);
     return data;
   }
 
