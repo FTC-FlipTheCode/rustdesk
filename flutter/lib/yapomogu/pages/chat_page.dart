@@ -53,7 +53,7 @@ class _ChatPageState extends State<ChatPage> {
           return ListView.builder(
             controller: _scrollCtrl,
             padding: const EdgeInsets.all(16),
-            itemCount: msgs.length + (_firstMessage ? 0 : 0),
+            itemCount: msgs.length + (_firstMessage ? 0 : 1),
             itemBuilder: (ctx, i) {
               if (!_firstMessage && i == 0) {
                 return _TicketCreatedNotice();
