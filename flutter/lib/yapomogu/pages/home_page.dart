@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../agent_controller.dart';
 import 'chat_page.dart';
+import 'package:yapomogu/yapomogu/pages/tickets_page.dart';
+import 'package:yapomogu/yapomogu/pages/sysinfo_page.dart';
 
 enum AgentTab { home, chat, tickets, sysinfo }
 
@@ -275,6 +277,3 @@ class _StatusBadge extends StatelessWidget {
   );
 }
 
-// Temporary stubs — Task 8 will create these as separate files
-class TicketsPage extends StatelessWidget { const TicketsPage({super.key}); @override Widget build(BuildContext context) => const Center(child: Text('Заявки')); }
-class SysinfoPage extends StatelessWidget { const SysinfoPage({super.key}); @override Widget build(BuildContext context) => const Center(child: Text('Информация о системе')); }
