@@ -25,6 +25,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:window_size/window_size.dart' as window_size;
 import '../widgets/button.dart';
+import '../../yapomogu/agent_bindings.dart';
+import '../../yapomogu/pages/yapomogu_root_page.dart';
 
 class DesktopHomePage extends StatefulWidget {
   const DesktopHomePage({Key? key}) : super(key: key);
@@ -112,6 +114,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
         },
       ),
       buildPluginEntry(),
+      buildYapomoguEntry(context),
     ];
     if (isIncomingOnly) {
       children.addAll([
@@ -697,6 +700,8 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   @override
   void initState() {
     super.initState();
+    // Initialize Я ПОМОГУ! agent controller with RustDesk peer ID
+    AgentBindings.init(() async => bind.mainGetMyId());
     _updateTimer = periodic_immediate(const Duration(seconds: 1), () async {
       await gFFI.serverModel.fetchID();
       final error = await bind.mainGetError();
@@ -889,6 +894,43 @@ class _DesktopHomePageState extends State<DesktopHomePage>
     if (state == AppLifecycleState.resumed) {
       shouldBeBlocked(_block, canBeBlocked);
     }
+  }
+
+  Widget buildYapomoguEntry(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 12.0, right: 12.0, top: 8.0, bottom: 4.0),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () {
+          Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => const YapomoguRootPage(),
+          ));
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: const Color(0xFF2F65BA).withOpacity(0.12),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.support_agent, size: 20, color: Color(0xFF2F65BA)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Я ПОМОГУ!',
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(color: const Color(0xFF2F65BA)),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Widget buildPluginEntry() {
