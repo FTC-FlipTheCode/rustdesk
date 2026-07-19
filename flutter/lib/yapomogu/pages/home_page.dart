@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../agent_controller.dart';
-import 'chat_page.dart';
+import 'package:yapomogu/yapomogu/pages/chat_page.dart';
 import 'package:yapomogu/yapomogu/pages/tickets_page.dart';
 import 'package:yapomogu/yapomogu/pages/sysinfo_page.dart';
 

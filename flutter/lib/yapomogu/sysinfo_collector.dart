@@ -36,7 +36,7 @@ class SysinfoCollector {
       _ps('(Get-WmiObject Win32_Processor).Name'),
       _ps('\$os=Get-WmiObject Win32_OperatingSystem; "{0:N1} ГБ из {1:N1} ГБ" -f ((\$os.TotalVisibleMemorySize - \$os.FreePhysicalMemory)/1MB), (\$os.TotalVisibleMemorySize/1MB)'),
       _ps('(Get-NetIPAddress -AddressFamily IPv4 | Where-Object {\$_.InterfaceAlias -notlike "*Loopback*"} | Select-Object -First 1).IPAddress'),
-      _ps('\$d=Get-PSDrive C; "{0:N0} ГБ из {1:N0} ГБ" -f (\$d.Free/1GB), ((\$d.Free+\$d.Used)/1GB)'),
+      _ps('\$d=Get-PSDrive C; \$free=\$d.Free; \$total=\$d.Free+\$d.Used; \$pct=[math]::Round(\$free/\$total*100); "{0:N0} ГБ из {1:N0} ГБ (\$pct% свободно)" -f (\$free/1GB), (\$total/1GB)'),
       _ps('((Get-PSDrive C).Free/((Get-PSDrive C).Free+(Get-PSDrive C).Used))'),
       _ps('[System.Management.ManagementDateTimeConverter]::ToDateTime((Get-WmiObject Win32_OperatingSystem).LastBootUpTime)'),
     ]);
