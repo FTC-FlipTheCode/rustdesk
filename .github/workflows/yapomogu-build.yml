@@ -58,16 +58,28 @@ jobs:
           fi
           ./vcpkg/vcpkg install libvpx:x64-windows-static libyuv:x64-windows-static opus:x64-windows-static aom:x64-windows-static
 
-      - name: Patch server config from secrets
-        shell: bash
+      - name: Patch hbb_common config
+        shell: python
         run: |
-          sed -i "s|ypagent.yapomogu.com|${{ secrets.RENDEZVOUS_SERVER }}|g" \
-            libs/hbb_common/src/config.rs
-          if [ -n "${{ secrets.RS_PUB_KEY }}" ]; then
-            # Replace RS_PUB_KEY constant value
-            sed -i "s/pub const RS_PUB_KEY: &str = \"[^\"]*\"/pub const RS_PUB_KEY: \&str = \"${{ secrets.RS_PUB_KEY }}\"/" \
-              libs/hbb_common/src/config.rs
-          fi
+          import re, os
+          path = "libs/hbb_common/src/config.rs"
+          with open(path, encoding="utf-8") as f:
+              src = f.read()
+          src = src.replace('"RustDesk"', '"Я ПОМОГУ! Агент"', 1)
+          server = os.environ.get("RENDEZVOUS_SERVER") or "agent.yapomogu.com"
+          src = src.replace('"rs-ny.rustdesk.com"', f'"{server}"', 1)
+          pub_key = os.environ.get("RS_PUB_KEY", "")
+          if pub_key:
+              src = re.sub(
+                  r'pub const RS_PUB_KEY: &str = "[^"]*"',
+                  f'pub const RS_PUB_KEY: &str = "{pub_key}"',
+                  src,
+              )
+          with open(path, "w", encoding="utf-8") as f:
+              f.write(src)
+        env:
+          RENDEZVOUS_SERVER: ${{ secrets.RENDEZVOUS_SERVER }}
+          RS_PUB_KEY: ${{ secrets.RS_PUB_KEY }}
 
       - name: Run Flutter tests
         working-directory: flutter
