@@ -8,6 +8,8 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+  VCPKG_COMMIT_ID: "120deac3062162151622ca4860575a33844ba10b"
 
 jobs:
   build-windows:
@@ -43,20 +45,27 @@ jobs:
         with:
           version: "15.0.2"
 
-      - name: Cache vcpkg
-        uses: actions/cache@v4
+      - name: Setup vcpkg with Github Actions binary cache
+        uses: lukka/run-vcpkg@b1a0dd252f06b9e25b3c022a9a03bd7a427fb6a2 # v11
         with:
-          path: vcpkg
-          key: vcpkg-${{ runner.os }}-manifest-x64-windows-static
+          vcpkgDirectory: C:\vcpkg
+          vcpkgGitCommitId: ${{ env.VCPKG_COMMIT_ID }}
+          doNotCache: false
 
-      - name: Setup vcpkg + install native libs
+      - name: Install vcpkg dependencies
+        env:
+          VCPKG_DEFAULT_HOST_TRIPLET: x64-windows-static
         shell: bash
         run: |
-          if [ ! -d vcpkg ]; then
-            git clone https://github.com/microsoft/vcpkg
-            ./vcpkg/bootstrap-vcpkg.bat
+          if ! $VCPKG_ROOT/vcpkg \
+            install \
+            --triplet x64-windows-static \
+            --x-install-root="$VCPKG_ROOT/installed"; then
+            find "${VCPKG_ROOT}/" -name "*.log" | while read -r _1; do
+              echo "$_1:"; echo "======"; cat "$_1"; echo "======"; echo ""
+            done
+            exit 1
           fi
-          ./vcpkg/vcpkg install --triplet x64-windows-static --x-install-root="${GITHUB_WORKSPACE}/vcpkg/installed"
 
       - name: Patch hbb_common config
         shell: python
@@ -89,7 +98,7 @@ jobs:
         shell: bash
         run: python3 ./build.py --portable --hwcodec --flutter
         env:
-          VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+          VCPKG_ROOT: C:\vcpkg
           LIBCLANG_PATH: ${{ env.LLVM_PATH }}/bin
 
       - name: Get version
