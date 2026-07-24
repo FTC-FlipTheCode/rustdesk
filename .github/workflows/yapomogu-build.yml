@@ -94,6 +94,10 @@ jobs:
         working-directory: flutter
         run: flutter test test/yapomogu/
 
+      - name: Update Cargo lockfile
+        shell: bash
+        run: cargo generate-lockfile
+
       - name: Build portable .exe
         shell: bash
         run: python3 ./build.py --portable --hwcodec --flutter
