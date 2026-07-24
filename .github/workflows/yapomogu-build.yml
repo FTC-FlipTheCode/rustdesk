@@ -94,6 +94,27 @@ jobs:
         working-directory: flutter
         run: flutter test test/yapomogu/
 
+      - name: Cache flutter_rust_bridge_codegen binary
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/flutter_rust_bridge_codegen.exe
+          key: frb-codegen-1.80.1-windows
+
+      - name: Install flutter_rust_bridge_codegen
+        shell: bash
+        run: |
+          if [ ! -f ~/.cargo/bin/flutter_rust_bridge_codegen.exe ]; then
+            cargo install flutter_rust_bridge_codegen --version 1.80.1 --features "uuid"
+          fi
+
+      - name: Generate bridge code
+        shell: bash
+        run: |
+          pushd flutter && flutter pub get && popd
+          ~/.cargo/bin/flutter_rust_bridge_codegen \
+            --rust-input ./src/flutter_ffi.rs \
+            --dart-output ./flutter/lib/generated_bridge.dart
+
       - name: Build portable .exe
         shell: bash
         run: |
