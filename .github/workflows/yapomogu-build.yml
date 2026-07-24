@@ -94,13 +94,11 @@ jobs:
         working-directory: flutter
         run: flutter test test/yapomogu/
 
-      - name: Update Cargo lockfile
-        shell: bash
-        run: cargo generate-lockfile
-
       - name: Build portable .exe
         shell: bash
-        run: python3 ./build.py --portable --hwcodec --flutter
+        run: |
+          sed -i 's/cargo build --locked/cargo build/g' build.py
+          python3 ./build.py --portable --hwcodec --flutter
         env:
           VCPKG_ROOT: C:\vcpkg
           LIBCLANG_PATH: ${{ env.LLVM_PATH }}/bin
