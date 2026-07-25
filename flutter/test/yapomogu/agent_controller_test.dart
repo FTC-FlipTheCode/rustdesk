@@ -4,9 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:yapomogu/yapomogu/bridge_client.dart';
-import 'package:yapomogu/yapomogu/sse_client.dart';
-import 'package:yapomogu/yapomogu/agent_controller.dart';
+import 'package:flutter_hbb/yapomogu/bridge_client.dart';
+import 'package:flutter_hbb/yapomogu/sse_client.dart';
+import 'package:flutter_hbb/yapomogu/agent_controller.dart';
 
 http.Client _mock(int status, Object body) => MockClient((_) async =>
     http.Response(jsonEncode(body), status, headers: {'content-type': 'application/json'}));

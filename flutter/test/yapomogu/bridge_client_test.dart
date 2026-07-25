@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:yapomogu/yapomogu/bridge_client.dart';
+import 'package:flutter_hbb/yapomogu/bridge_client.dart';
 
 http.Client mockClient(int status, Object body) => MockClient((_) async =>
     http.Response(jsonEncode(body), status, headers: {'content-type': 'application/json'}));
