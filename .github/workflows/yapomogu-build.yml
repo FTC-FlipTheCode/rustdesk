@@ -100,9 +100,7 @@ jobs:
 
       - name: Build portable .exe
         shell: bash
-        run: |
-          sed -i 's/cargo build --locked/cargo build/g' build.py
-          python3 ./build.py --portable --hwcodec --flutter
+        run: python3 ./build.py --portable --hwcodec --flutter
         env:
           VCPKG_ROOT: C:\vcpkg
           LIBCLANG_PATH: ${{ env.LLVM_PATH }}/bin
