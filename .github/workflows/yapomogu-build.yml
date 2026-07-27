@@ -114,12 +114,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: yapomogu-windows-x64-${{ steps.version.outputs.ver }}
-          path: target/release/*portable*.exe
+          path: rustdesk-*-install.exe
           retention-days: 30
 
       - name: Create GitHub Release (on tag)
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: target/release/*portable*.exe
+          files: rustdesk-*-install.exe
           name: "Я ПОМОГУ! Агент ${{ steps.version.outputs.ver }}"
