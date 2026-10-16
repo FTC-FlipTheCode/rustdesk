@@ -27,6 +27,7 @@ import 'package:window_size/window_size.dart' as window_size;
 import '../widgets/button.dart';
 import '../../yapomogu/agent_bindings.dart';
 import '../../yapomogu/pages/yapomogu_root_page.dart';
+import '../../yapomogu/pages/install_page.dart';
 
 class DesktopHomePage extends StatefulWidget {
   const DesktopHomePage({Key? key}) : super(key: key);
@@ -61,6 +62,24 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    // [agent] The client sees the agent UI instead of the stock RustDesk home.
+    // initState above still runs the RustDesk background wiring (ID, window events).
+    if (isWindows && !bind.isDisableInstallation() && !bind.mainIsInstalled()) {
+      return YapomoguInstallPage(onInstall: _installAgent);
+    }
+    return _buildBlock(child: const YapomoguRootPage());
+  }
+
+  Future<void> _installAgent({required bool desktopIcon}) async {
+    await rustDeskWinManager.closeAllSubWindows();
+    bind.installInstallMe(
+        options: desktopIcon ? 'startmenu desktopicon' : 'startmenu',
+        path: bind.installInstallPath());
+  }
+
+  // Stock RustDesk home layout, kept unused to ease upstream merges.
+  // ignore: unused_element
+  Widget _buildStockHome(BuildContext context) {
     final isIncomingOnly = bind.isIncomingOnly();
     return _buildBlock(
         child: Row(
@@ -114,7 +133,6 @@ class _DesktopHomePageState extends State<DesktopHomePage>
         },
       ),
       buildPluginEntry(),
-      buildYapomoguEntry(context),
     ];
     if (isIncomingOnly) {
       children.addAll([
@@ -894,43 +912,6 @@ class _DesktopHomePageState extends State<DesktopHomePage>
     if (state == AppLifecycleState.resumed) {
       shouldBeBlocked(_block, canBeBlocked);
     }
-  }
-
-  Widget buildYapomoguEntry(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 12.0, right: 12.0, top: 8.0, bottom: 4.0),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(8),
-        onTap: () {
-          Navigator.of(context).push(MaterialPageRoute(
-            builder: (_) => const YapomoguRootPage(),
-          ));
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: const Color(0xFF2F65BA).withOpacity(0.12),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.support_agent, size: 20, color: Color(0xFF2F65BA)),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Я ПОМОГУ!',
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(color: const Color(0xFF2F65BA)),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 
   Widget buildPluginEntry() {

@@ -73,7 +73,8 @@ class _SetupPageState extends State<SetupPage> {
     _textField(_innCtrl, '7701234567', TextInputType.number),
     if (ctrl.error.value.isNotEmpty) ...[
       const SizedBox(height: 8),
-      Text(ctrl.error.value, style: const TextStyle(fontSize: 12, color: Color(0xFFDC2626))),
+      // Selectable so the client can copy the hotline number.
+      SelectableText(ctrl.error.value, style: const TextStyle(fontSize: 12, color: Color(0xFFDC2626))),
     ],
     const SizedBox(height: 16),
     _primaryBtn('Далее', ctrl.isLoading.value, () => ctrl.submitInn(_innCtrl.text)),

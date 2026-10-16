@@ -43,7 +43,26 @@ void main() {
     await Future.delayed(Duration.zero);
     await ctrl.submitInn('0000000000');
     expect(ctrl.step.value, SetupStep.inn);
-    expect(ctrl.error.value, contains('не найдена'));
+    expect(ctrl.error.value, contains('не нашли'));
+    expect(ctrl.error.value, contains(kYpHotlinePhone));
+  });
+
+  test('submitInn re-reads peer id when it was empty at startup', () async {
+    SharedPreferences.setMockInitialValues({});
+    final ids = ['', 'late-peer-id'];
+    String? sentPeerId;
+    final ctrl = AgentController(
+      bridgeClient: BridgeClient(baseUrl: 'http://test', httpClient: MockClient((req) async {
+        sentPeerId = jsonDecode(req.body)['peer_id'] as String?;
+        return http.Response(jsonEncode({'entity_id': 5, 'company_name': 'ООО Рога'}), 200,
+            headers: {'content-type': 'application/json'});
+      })),
+      sseClient: SseClient(baseUrl: 'http://test', httpClient: _mock(200, {})),
+      getPeerId: () async => ids.isEmpty ? 'late-peer-id' : ids.removeAt(0),
+    );
+    await Future.delayed(Duration.zero);
+    await ctrl.submitInn('7701234567');
+    expect(sentPeerId, 'late-peer-id');
   });
 
   test('submitContact pending advances to waiting and starts polling', () async {

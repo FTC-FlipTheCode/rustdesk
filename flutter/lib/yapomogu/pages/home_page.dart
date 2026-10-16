@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../agent_controller.dart';
+import 'package:flutter_hbb/common.dart' show gFFI;
 import 'package:flutter_hbb/yapomogu/pages/chat_page.dart';
 import 'package:flutter_hbb/yapomogu/pages/tickets_page.dart';
 import 'package:flutter_hbb/yapomogu/pages/sysinfo_page.dart';
@@ -167,7 +168,16 @@ class _RemoteCardState extends State<_RemoteCard> {
 
   @override
   Widget build(BuildContext context) {
-    final formattedId = _formatId(widget.peerId);
+    // ID and one-time password come from RustDesk itself, so they stay current.
+    final server = gFFI.serverModel;
+    return AnimatedBuilder(
+      animation: Listenable.merge([server.serverId, server.serverPasswd]),
+      builder: (context, _) => _card(server.serverId.text, server.serverPasswd.text),
+    );
+  }
+
+  Widget _card(String serverId, String password) {
+    final formattedId = serverId.trim().isNotEmpty ? serverId : _formatId(widget.peerId);
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -179,12 +189,12 @@ class _RemoteCardState extends State<_RemoteCard> {
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const Text('ID ДЛЯ ПОДКЛЮЧЕНИЯ', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFF64748B), letterSpacing: .6)),
           const SizedBox(height: 4),
-          Text(formattedId, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w700, color: Color(0xFF0F172A), letterSpacing: 3, fontFamily: 'monospace')),
+          SelectableText(formattedId, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w700, color: Color(0xFF0F172A), letterSpacing: 3, fontFamily: 'monospace')),
           const SizedBox(height: 8),
           Row(children: [
             const Text('Пароль сессии', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
             const SizedBox(width: 8),
-            Text(_passVisible ? '••••••' : '••••••', style: const TextStyle(fontSize: 13, fontFamily: 'monospace', color: Color(0xFF374151))),
+            SelectableText(_passVisible ? password : '••••••', style: const TextStyle(fontSize: 13, fontFamily: 'monospace', color: Color(0xFF374151))),
             const SizedBox(width: 6),
             GestureDetector(
               onTap: () => setState(() => _passVisible = !_passVisible),

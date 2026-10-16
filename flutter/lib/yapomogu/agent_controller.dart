@@ -13,6 +13,9 @@ class ChatMessage {
   ChatMessage({this.id, required this.content, required this.isOutgoing, required this.time});
 }
 
+// Shown to clients who cannot be identified (e.g. company INN not found).
+const kYpHotlinePhone = 'УКАЖИТЕ_НОМЕР';
+
 enum SetupStep { inn, contact, needsClarification, waiting, confirmed, rejected }
 
 class AgentController extends GetxController {
@@ -73,17 +76,26 @@ class AgentController extends GetxController {
     await prefs.setString('yp_contact_name', contactName.value);
   }
 
+  // On first launch RustDesk may still be generating the ID when onInit runs.
+  Future<String> _ensurePeerId() async {
+    if (peerId.value.isEmpty) peerId.value = await getPeerId();
+    return peerId.value;
+  }
+
   Future<void> submitInn(String inn) async {
     error.value = '';
     isLoading.value = true;
     try {
+      await _ensurePeerId();
       final result = await bridgeClient.identifyCompany(inn.trim(), peerId.value);
       companyName.value = result.companyName;
       entityId.value = result.entityId;
       step.value = SetupStep.contact;
       await persistState();
     } on BridgeException catch (e) {
-      error.value = e.statusCode == 404 ? 'Компания не найдена. Проверьте ИНН.' : 'Ошибка: ${e.detail}';
+      error.value = e.statusCode == 404
+          ? 'Организацию с таким ИНН не нашли. Проверьте цифры или позвоните на горячую линию: $kYpHotlinePhone'
+          : 'Ошибка: ${e.detail}';
     } catch (e) {
       error.value = 'Нет соединения с сервером.';
     } finally {
@@ -95,6 +107,7 @@ class AgentController extends GetxController {
     error.value = '';
     isLoading.value = true;
     try {
+      await _ensurePeerId();
       final result = await bridgeClient.identifyContact(
         peerId: peerId.value,
         entityId: entityId.value,
