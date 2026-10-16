@@ -14,7 +14,7 @@ class ChatMessage {
 }
 
 // Shown to clients who cannot be identified (e.g. company INN not found).
-const kYpHotlinePhone = 'УКАЖИТЕ_НОМЕР';
+const kYpHotlinePhone = '8 800 775-75-75';
 
 enum SetupStep { inn, contact, needsClarification, waiting, confirmed, rejected }
 
