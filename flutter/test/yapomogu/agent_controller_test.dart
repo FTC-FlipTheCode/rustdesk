@@ -49,7 +49,6 @@ void main() {
 
   test('submitInn re-reads peer id when it was empty at startup', () async {
     SharedPreferences.setMockInitialValues({});
-    final ids = ['', 'late-peer-id'];
     String? sentPeerId;
     final ctrl = AgentController(
       bridgeClient: BridgeClient(baseUrl: 'http://test', httpClient: MockClient((req) async {
@@ -58,9 +57,9 @@ void main() {
             headers: {'content-type': 'application/json'});
       })),
       sseClient: SseClient(baseUrl: 'http://test', httpClient: _mock(200, {})),
-      getPeerId: () async => ids.isEmpty ? 'late-peer-id' : ids.removeAt(0),
+      getPeerId: () async => 'late-peer-id',
     );
-    await Future.delayed(Duration.zero);
+    ctrl.peerId.value = ''; // ID was not generated yet when the agent started
     await ctrl.submitInn('7701234567');
     expect(sentPeerId, 'late-peer-id');
   });
