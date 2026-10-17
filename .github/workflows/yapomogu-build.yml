@@ -9,7 +9,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
-  VCPKG_COMMIT_ID: "120deac3062162151622ca4860575a33844ba10b"
+  VCPKG_COMMIT_ID: "9e593bb18ea69cc5095e012465dcd675a822ed0d" # same as upstream 1.5.0 (vcpkg.json baseline)
 
 jobs:
   # Same as upstream flutter-build.yml: the Rust<->Dart bridge is generated per version, not committed.
