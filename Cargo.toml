@@ -1,11 +1,11 @@
 [package]
-name = "yapomogu"
+name = "rustdesk"
 version = "1.5.0"
 authors = ["rustdesk <info@rustdesk.com>"]
 edition = "2021"
 build= "build.rs"
 description = "Удалённый доступ — Я ПОМОГУ!"
-default-run = "yapomogu"
+default-run = "rustdesk"
 rust-version = "1.75"
 
 [lib]
