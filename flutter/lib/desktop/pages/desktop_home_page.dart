@@ -24,6 +24,9 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:window_size/window_size.dart' as window_size;
 import '../widgets/button.dart';
+import '../../yapomogu/agent_bindings.dart';
+import '../../yapomogu/pages/yapomogu_root_page.dart';
+import '../../yapomogu/pages/install_page.dart';
 
 class DesktopHomePage extends StatefulWidget {
   const DesktopHomePage({Key? key}) : super(key: key);
@@ -58,6 +61,24 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    // [agent] The client sees the agent UI instead of the stock RustDesk home.
+    // initState above still runs the RustDesk background wiring (ID, window events).
+    if (isWindows && !bind.isDisableInstallation() && !bind.mainIsInstalled()) {
+      return YapomoguInstallPage(onInstall: _installAgent);
+    }
+    return _buildBlock(child: const YapomoguRootPage());
+  }
+
+  Future<void> _installAgent({required bool desktopIcon}) async {
+    await rustDeskWinManager.closeAllSubWindows();
+    bind.installInstallMe(
+        options: desktopIcon ? 'startmenu desktopicon' : 'startmenu',
+        path: bind.installInstallPath());
+  }
+
+  // Stock RustDesk home layout, kept unused to ease upstream merges.
+  // ignore: unused_element
+  Widget _buildStockHome(BuildContext context) {
     final isIncomingOnly = bind.isIncomingOnly();
     return _buildBlock(
         child: Row(
@@ -695,6 +716,8 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   @override
   void initState() {
     super.initState();
+    // Initialize Я ПОМОГУ! agent controller with RustDesk peer ID
+    AgentBindings.init(() async => bind.mainGetMyId());
     _updateTimer = periodic_immediate(const Duration(seconds: 1), () async {
       await gFFI.serverModel.fetchID();
       final error = await bind.mainGetError();

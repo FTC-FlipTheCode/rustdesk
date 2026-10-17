@@ -1,11 +1,11 @@
 [package]
-name = "rustdesk"
+name = "yapomogu"
 version = "1.5.0"
 authors = ["rustdesk <info@rustdesk.com>"]
 edition = "2021"
 build= "build.rs"
-description = "RustDesk Remote Desktop"
-default-run = "rustdesk"
+description = "Удалённый доступ — Я ПОМОГУ!"
+default-run = "yapomogu"
 rust-version = "1.75"
 
 [lib]
@@ -274,8 +274,8 @@ docopt = "1.1"
 tokio = { version = "1.44", features = ["test-util"] }
 
 [package.metadata.bundle]
-name = "RustDesk"
-identifier = "com.carriez.rustdesk"
+name = "Я ПОМОГУ! Агент"
+identifier = "ru.yapomogu.remote"
 icon = ["res/32x32.png", "res/128x128.png", "res/128x128@2x.png"]
 osx_minimum_system_version = "10.14"
 
