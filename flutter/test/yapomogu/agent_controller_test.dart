@@ -97,4 +97,36 @@ void main() {
     expect(ctrl.messages.first.content, 'Привет');
     expect(ctrl.messages.first.isOutgoing, false);
   });
+
+  test('submitContact reports the PC hardware once registered', () async {
+    SharedPreferences.setMockInitialValues({});
+    final paths = <String>[];
+    final ctrl = AgentController(
+      bridgeClient: BridgeClient(baseUrl: 'http://test', httpClient: MockClient((req) async {
+        paths.add(req.url.path);
+        if (req.url.path.endsWith('/sysinfo')) return http.Response('', 204);
+        return http.Response(jsonEncode({'status': 'pending', 'glpi_contact_id': null}), 200,
+            headers: {'content-type': 'application/json'});
+      })),
+      sseClient: SseClient(baseUrl: 'http://test', httpClient: _mock(200, {})),
+      getPeerId: () async => 'test-peer-id',
+      collectSysinfo: () async => {'hostname': 'PC'},
+    );
+    ctrl.peerId.value = 'test-peer-id';
+    ctrl.entityId.value = 5;
+    await ctrl.submitContact(phone: '+79991234567');
+    ctrl.stopPolling();
+    await Future.delayed(Duration.zero);
+    expect(paths, contains('/api/device/test-peer-id/sysinfo'));
+  });
+
+  test('submitContact with an unidentified company sends the client back to the INN step', () async {
+    final ctrl = _makeController(_mock(422, {'detail': 'company_not_identified'}));
+    await Future.delayed(Duration.zero);
+    ctrl.step.value = SetupStep.contact;
+    ctrl.entityId.value = 0;
+    await ctrl.submitContact(name: 'Иванов');
+    expect(ctrl.step.value, SetupStep.inn);
+    expect(ctrl.error.value, contains('ИНН'));
+  });
 }

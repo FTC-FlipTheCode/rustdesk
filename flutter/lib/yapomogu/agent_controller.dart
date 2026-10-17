@@ -22,12 +22,17 @@ class AgentController extends GetxController {
   final BridgeClient bridgeClient;
   final SseClient sseClient;
   final Future<String> Function() getPeerId;
+  final Future<Map<String, dynamic>?> Function()? collectSysinfo;
 
   AgentController({
     required this.bridgeClient,
     required this.sseClient,
     required this.getPeerId,
+    this.collectSysinfo,
   });
+
+  static const _sysinfoInterval = Duration(hours: 6);
+  Timer? _sysinfoTimer;
 
   final Rx<SetupStep> step = SetupStep.inn.obs;
   final RxString peerId = ''.obs;
@@ -66,6 +71,7 @@ class AgentController extends GetxController {
     step.value = SetupStep.values.firstWhere((s) => s.name == savedStep, orElse: () => SetupStep.inn);
     if (step.value == SetupStep.waiting) startPolling();
     if (step.value == SetupStep.confirmed) connectSse();
+    if (step.value == SetupStep.waiting || step.value == SetupStep.confirmed) startSysinfoReports();
   }
 
   Future<void> persistState() async {
@@ -120,15 +126,41 @@ class AgentController extends GetxController {
       } else {
         step.value = SetupStep.waiting;
         startPolling();
+        startSysinfoReports();
       }
       await persistState();
     } on BridgeException catch (e) {
+      if (e.statusCode == 422 && e.detail == 'company_not_identified') {
+        // Saved company is unknown to the bridge (e.g. an old registration): start over.
+        step.value = SetupStep.inn;
+        entityId.value = 0;
+        companyName.value = '';
+        error.value = 'Организация не определена. Введите ИНН ещё раз.';
+        await persistState();
+        return;
+      }
       error.value = 'Ошибка: ${e.detail}';
     } catch (e) {
       error.value = 'Нет соединения с сервером.';
     } finally {
       isLoading.value = false;
     }
+  }
+
+  /// Send the hardware snapshot now and every few hours; failures only wait for the next round.
+  void startSysinfoReports() {
+    if (collectSysinfo == null) return;
+    _sysinfoTimer?.cancel();
+    reportSysinfo();
+    _sysinfoTimer = Timer.periodic(_sysinfoInterval, (_) => reportSysinfo());
+  }
+
+  Future<void> reportSysinfo() async {
+    try {
+      final report = await collectSysinfo?.call();
+      if (report == null) return;
+      await bridgeClient.reportSysinfo(await _ensurePeerId(), report);
+    } catch (_) {}
   }
 
   void startPolling() {
@@ -215,6 +247,7 @@ class AgentController extends GetxController {
   @override
   void onClose() {
     stopPolling();
+    _sysinfoTimer?.cancel();
     _sseSub?.cancel();
     super.onClose();
   }

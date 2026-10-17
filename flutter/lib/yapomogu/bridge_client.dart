@@ -124,6 +124,22 @@ class BridgeClient {
     return list.map((e) => AgentMessage.fromJson(e as Map<String, dynamic>)).toList();
   }
 
+  /// Hardware snapshot; the bridge answers 204 with an empty body.
+  Future<void> reportSysinfo(String peerId, Map<String, dynamic> report) async {
+    final resp = await _http.post(
+      Uri.parse('$baseUrl/api/device/$peerId/sysinfo'),
+      headers: _headers,
+      body: jsonEncode(report),
+    );
+    if (resp.statusCode >= 400) {
+      String detail = resp.body;
+      try {
+        detail = (jsonDecode(resp.body) as Map<String, dynamic>)['detail']?.toString() ?? resp.body;
+      } catch (_) {}
+      throw BridgeException(resp.statusCode, detail);
+    }
+  }
+
   Future<void> ackMessage(String peerId, int messageId) async {
     await _post('/api/device/$peerId/ack', {'message_id': messageId});
   }

@@ -79,4 +79,27 @@ void main() {
       expect(msgs.first.content, 'Привет');
     });
   });
+
+  group('BridgeClient.reportSysinfo', () {
+    test('posts the report to the device sysinfo endpoint and accepts 204', () async {
+      late http.Request sent;
+      final client = BridgeClient(
+        baseUrl: 'http://test',
+        httpClient: MockClient((req) async {
+          sent = req;
+          return http.Response('', 204);
+        }),
+      );
+      await client.reportSysinfo('peer1', {'hostname': 'PC'});
+      expect(sent.method, 'POST');
+      expect(sent.url.path, '/api/device/peer1/sysinfo');
+      expect(jsonDecode(sent.body), {'hostname': 'PC'});
+    });
+
+    test('throws BridgeException on 404', () async {
+      final client = BridgeClient(baseUrl: 'http://test', httpClient: mockClient(404, {'detail': 'device_not_found'}));
+      expect(() => client.reportSysinfo('peer1', {}),
+          throwsA(isA<BridgeException>().having((e) => e.statusCode, 'statusCode', 404)));
+    });
+  });
 }

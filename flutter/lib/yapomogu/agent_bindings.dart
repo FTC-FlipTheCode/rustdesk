@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'bridge_client.dart';
 import 'sse_client.dart';
 import 'agent_controller.dart';
+import 'sysinfo_collector.dart';
 
 // Call AgentBindings.init() once at app startup (in main.dart or desktop_home_page.dart initState)
 class AgentBindings {
@@ -15,6 +16,7 @@ class AgentBindings {
       bridgeClient: client,
       sseClient: sse,
       getPeerId: getPeerId,
+      collectSysinfo: SysinfoCollector().collectReport,
     ), permanent: true);
   }
 }
