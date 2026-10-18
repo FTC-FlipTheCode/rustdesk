@@ -75,9 +75,13 @@ class _DesktopHomePageState extends State<DesktopHomePage>
     return _buildBlock(child: const YapomoguRootPage());
   }
 
+  // mainUpdateMe only relaunches into the stock "--install" window; reinstall over the
+  // existing installation directly (install_me uninstalls the old version first).
   Future<void> _upgradeAgent({required bool desktopIcon}) async {
     await rustDeskWinManager.closeAllSubWindows();
-    bind.mainUpdateMe();
+    bind.installInstallMe(
+        options: desktopIcon ? 'startmenu desktopicon' : 'startmenu',
+        path: bind.installInstallPath());
   }
 
   Future<void> _installAgent({required bool desktopIcon}) async {

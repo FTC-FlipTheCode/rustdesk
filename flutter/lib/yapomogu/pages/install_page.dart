@@ -48,7 +48,7 @@ class _YapomoguInstallPageState extends State<YapomoguInstallPage> {
                 style: const TextStyle(fontSize: 13, color: Color(0xFF64748B), height: 1.5),
               ),
               const SizedBox(height: 16),
-              if (!widget.isUpgrade) CheckboxListTile(
+              CheckboxListTile(
                 value: _desktopIcon,
                 onChanged: _installing ? null : (v) => setState(() => _desktopIcon = v ?? true),
                 title: const Text('Ярлык на рабочем столе', style: TextStyle(fontSize: 13)),
