@@ -63,10 +63,21 @@ class _DesktopHomePageState extends State<DesktopHomePage>
     super.build(context);
     // [agent] The client sees the agent UI instead of the stock RustDesk home.
     // initState above still runs the RustDesk background wiring (ID, window events).
-    if (isWindows && !bind.isDisableInstallation() && !bind.mainIsInstalled()) {
-      return YapomoguInstallPage(onInstall: _installAgent);
+    if (isWindows && !bind.isDisableInstallation()) {
+      if (!bind.mainIsInstalled()) {
+        return YapomoguInstallPage(onInstall: _installAgent);
+      }
+      // A newer copy started over an older installation: offer the stock in-place upgrade.
+      if (bind.mainIsInstalledLowerVersion()) {
+        return YapomoguInstallPage(onInstall: _upgradeAgent, isUpgrade: true);
+      }
     }
     return _buildBlock(child: const YapomoguRootPage());
+  }
+
+  Future<void> _upgradeAgent({required bool desktopIcon}) async {
+    await rustDeskWinManager.closeAllSubWindows();
+    bind.mainUpdateMe();
   }
 
   Future<void> _installAgent({required bool desktopIcon}) async {

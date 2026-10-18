@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 /// and never show it.
 class YapomoguInstallPage extends StatefulWidget {
   final Future<void> Function({required bool desktopIcon}) onInstall;
-  const YapomoguInstallPage({super.key, required this.onInstall});
+  final bool isUpgrade; // an older version is installed: update it in place
+  const YapomoguInstallPage({super.key, required this.onInstall, this.isUpgrade = false});
 
   @override
   State<YapomoguInstallPage> createState() => _YapomoguInstallPageState();
@@ -36,15 +37,18 @@ class _YapomoguInstallPageState extends State<YapomoguInstallPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Установка агента', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w700)),
+              Text(widget.isUpgrade ? 'Обновление агента' : 'Установка агента',
+                  style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w700)),
               const SizedBox(height: 6),
-              const Text(
-                'Агент нужен, чтобы IT-отдел мог помочь вам: чат, заявки и удалённый доступ по вашему разрешению. '
-                'Агент будет запускаться вместе с Windows.',
-                style: TextStyle(fontSize: 13, color: Color(0xFF64748B), height: 1.5),
+              Text(
+                widget.isUpgrade
+                    ? 'На компьютере установлена более старая версия агента. Обновите её — настройки и регистрация сохранятся.'
+                    : 'Агент нужен, чтобы IT-отдел мог помочь вам: чат, заявки и удалённый доступ по вашему разрешению. '
+                        'Агент будет запускаться вместе с Windows.',
+                style: const TextStyle(fontSize: 13, color: Color(0xFF64748B), height: 1.5),
               ),
               const SizedBox(height: 16),
-              CheckboxListTile(
+              if (!widget.isUpgrade) CheckboxListTile(
                 value: _desktopIcon,
                 onChanged: _installing ? null : (v) => setState(() => _desktopIcon = v ?? true),
                 title: const Text('Ярлык на рабочем столе', style: TextStyle(fontSize: 13)),
@@ -63,7 +67,9 @@ class _YapomoguInstallPageState extends State<YapomoguInstallPage> {
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
                   ),
-                  child: Text(_installing ? 'Устанавливаем…' : 'Установить',
+                  child: Text(_installing
+                          ? (widget.isUpgrade ? 'Обновляем…' : 'Устанавливаем…')
+                          : (widget.isUpgrade ? 'Обновить' : 'Установить'),
                       style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                 ),
               ),
