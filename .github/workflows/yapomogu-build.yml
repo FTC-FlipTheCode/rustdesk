@@ -129,20 +129,18 @@ jobs:
 
       - name: Name the exe by build number
         shell: bash
-        run: cp rustdesk-*-install.exe "yapomogu-agent-${{ github.run_number }}.exe"
+        run: mv rustdesk-*-install.exe "yapomogu-agent-${{ github.run_number }}.exe"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: yapomogu-agent-${{ github.run_number }}-${{ steps.version.outputs.ver }}
-          path: |
-            yapomogu-agent-*.exe
-            rustdesk-*-install.exe
+          path: yapomogu-agent-*.exe
           retention-days: 30
 
       - name: Create GitHub Release (on tag)
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: rustdesk-*-install.exe
+          files: yapomogu-agent-*.exe
           name: "Я ПОМОГУ! Агент ${{ steps.version.outputs.ver }}"
