@@ -85,7 +85,9 @@ jobs:
           path = "libs/hbb_common/src/config.rs"
           with open(path, encoding="utf-8") as f:
               src = f.read()
-          src = src.replace('"RustDesk"', '"Я ПОМОГУ! Агент"', 1)
+          # ASCII app name: it becomes the install folder, service, registry key and exe name;
+          # Cyrillic there broke the Windows "installed apps" entry. Clients see the agent UI branding.
+          src = src.replace('"RustDesk"', '"YaPomogu"', 1)
           server = os.environ.get("RENDEZVOUS_SERVER") or "agent.yapomogu.com"
           src = src.replace('"rs-ny.rustdesk.com"', f'"{server}"', 1)
           pub_key = os.environ.get("RS_PUB_KEY", "")
