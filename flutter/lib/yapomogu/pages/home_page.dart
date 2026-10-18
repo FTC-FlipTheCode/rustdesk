@@ -4,6 +4,7 @@ import '../agent_controller.dart';
 import 'package:flutter_hbb/common.dart' show gFFI;
 import 'package:flutter_hbb/yapomogu/pages/chat_page.dart';
 import 'package:flutter_hbb/yapomogu/pages/tickets_page.dart';
+import '../bridge_client.dart';
 import 'package:flutter_hbb/yapomogu/pages/sysinfo_page.dart';
 
 enum AgentTab { home, chat, tickets, sysinfo }
@@ -31,9 +32,10 @@ class _AgentHomePageState extends State<AgentHomePage> {
 
   Widget _content(AgentController ctrl) {
     switch (_tab) {
-      case AgentTab.home:  return _HomeContent(ctrl: ctrl, onGoChat: () => setState(() => _tab = AgentTab.chat));
+      case AgentTab.home:  return _HomeContent(ctrl: ctrl, onGoChat: () => setState(() => _tab = AgentTab.chat),
+          onGoTickets: () => setState(() => _tab = AgentTab.tickets));
       case AgentTab.chat:  return const ChatPage();
-      case AgentTab.tickets: return const TicketsPage();
+      case AgentTab.tickets: return TicketsPage(onOpenChat: () => setState(() => _tab = AgentTab.chat));
       case AgentTab.sysinfo: return const SysinfoPage();
     }
   }
@@ -72,7 +74,8 @@ class _Sidebar extends StatelessWidget {
               _navItem(AgentTab.home, '🏠', 'Главная'),
               _navItem(AgentTab.chat, '💬', 'Чат с IT отделом',
                 badge: ctrl.messages.where((m) => m.isOutgoing && m.id != null).length),
-              _navItem(AgentTab.tickets, '📋', 'Заявки'),
+              _navItem(AgentTab.tickets, '📋', 'Мои заявки',
+                badge: ctrl.tickets.where((t) => t.awaitsConfirmation).length),
               _navItem(AgentTab.sysinfo, '💻', 'Информация о системе'),
             ])),
           ),
@@ -137,7 +140,8 @@ class _Avatar extends StatelessWidget {
 class _HomeContent extends StatelessWidget {
   final AgentController ctrl;
   final VoidCallback onGoChat;
-  const _HomeContent({required this.ctrl, required this.onGoChat});
+  final VoidCallback onGoTickets;
+  const _HomeContent({required this.ctrl, required this.onGoChat, required this.onGoTickets});
 
   @override
   Widget build(BuildContext context) {
@@ -150,7 +154,7 @@ class _HomeContent extends StatelessWidget {
         const SizedBox(height: 14),
         _ChatCta(onTap: onGoChat),
         const SizedBox(height: 14),
-        const _LastTicketBar(),
+        Obx(() => ctrl.tickets.isEmpty ? const SizedBox.shrink() : _LastTicketBar(ticket: ctrl.tickets.first, onTap: onGoTickets)),
       ]),
     );
   }
@@ -258,32 +262,27 @@ class _ChatCta extends StatelessWidget {
 }
 
 class _LastTicketBar extends StatelessWidget {
-  const _LastTicketBar();
+  final AgentTicket ticket;
+  final VoidCallback onTap;
+  const _LastTicketBar({required this.ticket, required this.onTap});
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-    decoration: BoxDecoration(
-      color: const Color(0xFFF8FAFC),
-      border: Border.all(color: const Color(0xFFE2E8F0)),
-      borderRadius: BorderRadius.circular(10),
+  Widget build(BuildContext context) => GestureDetector(
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(children: [
+        StatusPill(ticket),
+        const SizedBox(width: 12),
+        Expanded(child: Text('#${ticket.id} — ${ticket.title}', overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 13, color: Color(0xFF374151)))),
+        Text([ticketDate(ticket.date), ticket.technician].where((x) => x.isNotEmpty).join(' · '),
+            style: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8))),
+      ]),
     ),
-    child: const Row(children: [
-      _StatusBadge('Открыта'),
-      SizedBox(width: 12),
-      Expanded(child: Text('Последняя заявка', style: TextStyle(fontSize: 13, color: Color(0xFF374151)))),
-      Text('—', style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8))),
-    ]),
   );
 }
-
-class _StatusBadge extends StatelessWidget {
-  final String status;
-  const _StatusBadge(this.status);
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-    decoration: BoxDecoration(color: const Color(0xFFFEF9C3), borderRadius: BorderRadius.circular(99)),
-    child: Text(status, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF854D0E))),
-  );
-}
-

@@ -21,6 +21,7 @@ import '../../common/widgets/chat_page.dart';
 import '../../models/file_model.dart';
 import '../../models/platform_model.dart';
 import '../../models/server_model.dart';
+import '../../yapomogu/session_banner.dart';
 
 /// Set only by this window's own close control, and only once the user has confirmed. Any other
 /// way the window can go - a session logout closing every window, the window manager, a native
@@ -183,6 +184,11 @@ class ConnectionManagerState extends State<ConnectionManager>
       }
     }
 
+    // [agent] A technician's remote session: our banner instead of the stock window.
+    final ypClient = bannerClient(serverModel.clients);
+    if (ypClient != null) {
+      return YpSessionBanner(key: ValueKey(ypClient.id), client: ypClient);
+    }
     return serverModel.clients.isEmpty
         ? Column(
             children: [

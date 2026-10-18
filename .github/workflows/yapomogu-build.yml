@@ -111,6 +111,10 @@ jobs:
         shell: bash
         run: pushd flutter && flutter pub get && popd
 
+      - name: Stamp agent build number
+        shell: bash
+        run: echo "const int kYpBuild = ${{ github.run_number }};" > flutter/lib/yapomogu/build_info.dart
+
       - name: Build portable .exe
         shell: bash
         run: python3 ./build.py --portable --hwcodec --flutter
@@ -123,11 +127,17 @@ jobs:
         shell: bash
         run: echo "ver=$(grep '^version' Cargo.toml | head -1 | cut -d'"' -f2)" >> $GITHUB_OUTPUT
 
+      - name: Name the exe by build number
+        shell: bash
+        run: cp rustdesk-*-install.exe "yapomogu-agent-${{ github.run_number }}.exe"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: yapomogu-windows-x64-${{ steps.version.outputs.ver }}
-          path: rustdesk-*-install.exe
+          name: yapomogu-agent-${{ github.run_number }}-${{ steps.version.outputs.ver }}
+          path: |
+            yapomogu-agent-*.exe
+            rustdesk-*-install.exe
           retention-days: 30
 
       - name: Create GitHub Release (on tag)

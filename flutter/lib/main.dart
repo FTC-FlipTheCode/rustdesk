@@ -133,7 +133,7 @@ Future<void> initEnv(String appType) async {
 void runMainApp(bool startService) async {
   // register uni links
   await initEnv(kAppTypeMain);
-  checkUpdate();
+  // checkUpdate(); // [agent] updates come from the bridge (yapomogu/updater.dart)
   // trigger connection status updater
   await bind.mainCheckConnectStatus();
   if (startService) {
@@ -175,7 +175,7 @@ void runMainApp(bool startService) async {
 
 void runMobileApp() async {
   await initEnv(kAppTypeMain);
-  checkUpdate();
+  // checkUpdate(); // [agent] updates come from the bridge (yapomogu/updater.dart)
   if (isAndroid) androidChannelInit();
   if (isAndroid) platformFFI.syncAndroidServiceAppDirConfigPath();
   draggablePositions.load();
