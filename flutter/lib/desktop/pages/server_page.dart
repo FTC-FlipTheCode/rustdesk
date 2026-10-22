@@ -21,6 +21,7 @@ import '../../common/widgets/chat_page.dart';
 import '../../models/file_model.dart';
 import '../../models/platform_model.dart';
 import '../../models/server_model.dart';
+import '../../yapomogu/accept_request.dart';
 import '../../yapomogu/session_banner.dart';
 
 /// Set only by this window's own close control, and only once the user has confirmed. Any other
@@ -184,6 +185,11 @@ class ConnectionManagerState extends State<ConnectionManager>
       }
     }
 
+    // [agent] A technician asks to connect: our request window instead of the stock one.
+    final ypPending = pendingClient(serverModel.clients);
+    if (ypPending != null) {
+      return YpAcceptRequest(key: ValueKey(ypPending.id), client: ypPending);
+    }
     // [agent] A technician's remote session: our banner instead of the stock window.
     final ypClient = bannerClient(serverModel.clients);
     if (ypClient != null) {

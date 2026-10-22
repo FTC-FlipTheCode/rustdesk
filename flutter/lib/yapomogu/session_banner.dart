@@ -6,14 +6,16 @@ import 'package:window_manager/window_manager.dart';
 import 'package:flutter_hbb/consts.dart';
 import 'package:flutter_hbb/models/platform_model.dart';
 import 'package:flutter_hbb/models/server_model.dart';
+import 'accept_request.dart';
 import 'agent_bindings.dart';
 import 'bridge_client.dart';
+import 'cm_window.dart';
 
 // [agent] "Техник подключён" banner. It replaces the stock connection-manager window
 // (the --cm process, which alone knows the session) while a technician is connected
 // and authorised; approvals, chat and file transfer keep the stock window.
 
-const kYpBannerSize = Size(560, 52);
+const kYpBannerSize = Size(560, 44);
 final Map<int, DateTime> _startedAt = {}; // connection id → first seen, for the timer
 
 /// The connection to show as a banner, or null to keep the stock window.
@@ -44,7 +46,10 @@ class _YpSessionBannerState extends State<YpSessionBanner> {
     super.initState();
     _since = _startedAt.putIfAbsent(widget.client.id, DateTime.now);
     _name = widget.client.name;
-    _tick = Timer.periodic(const Duration(seconds: 1), (_) => setState(() {}));
+    _tick = Timer.periodic(const Duration(seconds: 1), (_) {
+      ypHoldWindowSize(kYpBannerSize, Alignment.topCenter); // the stock code may resize it after us
+      setState(() {});
+    });
     windowManager.setSizeAlignment(kYpBannerSize, Alignment.topCenter);
     _lookupName();
   }
@@ -77,10 +82,13 @@ class _YpSessionBannerState extends State<YpSessionBanner> {
     return '${two(d.inHours)}:${two(d.inMinutes % 60)}:${two(d.inSeconds % 60)}';
   }
 
+  /// Nobody pressed «Принять»: the technician came in with the unattended-access password.
+  bool get _byPassword => !ypAskedConnections.contains(widget.client.id);
+
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: const Color(0xFF16A34A),
+      color: _byPassword ? const Color(0xFFB45309) : const Color(0xFF16A34A),
       child: DragToMoveArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -92,7 +100,7 @@ class _YpSessionBannerState extends State<YpSessionBanner> {
                 TextSpan(children: [
                   const TextSpan(text: 'Техник '),
                   TextSpan(text: _name.isEmpty ? 'IT-отдела' : _name, style: const TextStyle(fontWeight: FontWeight.w700)),
-                  const TextSpan(text: ' подключён к вашему компьютеру'),
+                  TextSpan(text: _byPassword ? ' подключился по паролю' : ' подключён к вашему компьютеру'),
                 ]),
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(color: Colors.white, fontSize: 13),

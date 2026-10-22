@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
 import 'bridge_client.dart';
 import 'sse_client.dart';
+import 'access_apply.dart';
+import 'access_sync.dart';
 import 'agent_controller.dart';
 import 'sysinfo_collector.dart';
 import 'updater.dart';
@@ -20,5 +22,6 @@ class AgentBindings {
       collectSysinfo: SysinfoCollector().collectReport,
     ), permanent: true);
     AgentUpdater(bridge: client, getPeerId: getPeerId).start();
+    AccessSync(bridge: client, getPeerId: getPeerId, apply: applyAccessPlan).start();
   }
 }

@@ -84,6 +84,15 @@ class AgentUpdate {
       AgentUpdate(build: j['build'] as int, sha256: j['sha256'] as String, url: j['url'] as String);
 }
 
+/// Unattended-access state for this computer; the password is present only while the switch is on.
+class AccessState {
+  final bool unattended;
+  final String? password;
+  const AccessState({required this.unattended, this.password});
+  factory AccessState.fromJson(Map<String, dynamic> j) =>
+      AccessState(unattended: j['unattended'] as bool? ?? false, password: j['password'] as String?);
+}
+
 class BridgeException implements Exception {
   final int statusCode;
   final String detail;
@@ -227,6 +236,23 @@ class BridgeClient {
     final resp = await _http.get(Uri.parse('$baseUrl$path'));
     if (resp.statusCode != 200) throw BridgeException(resp.statusCode, 'download failed');
     return resp.bodyBytes;
+  }
+
+  /// The agent's one-time secret, or null when it already has one (409) or the device is not confirmed yet.
+  Future<String?> enroll(String peerId) async {
+    final resp = await _http.post(Uri.parse('$baseUrl/api/device/$peerId/enroll'), headers: _headers);
+    if (resp.statusCode == 409 || resp.statusCode == 404) return null;
+    if (resp.statusCode >= 400) throw BridgeException(resp.statusCode, resp.body);
+    return (jsonDecode(utf8.decode(resp.bodyBytes)) as Map<String, dynamic>)['agent_secret'] as String?;
+  }
+
+  /// Unattended-access state, or null when the bridge does not accept this secret.
+  Future<AccessState?> fetchAccess(String peerId, String agentSecret) async {
+    final resp = await _http.get(Uri.parse('$baseUrl/api/device/$peerId/access'),
+        headers: {..._headers, 'X-Agent-Secret': agentSecret});
+    if (resp.statusCode == 401 || resp.statusCode == 403 || resp.statusCode == 404) return null;
+    if (resp.statusCode >= 400) throw BridgeException(resp.statusCode, resp.body);
+    return AccessState.fromJson(jsonDecode(utf8.decode(resp.bodyBytes)) as Map<String, dynamic>);
   }
 
   Future<void> ackMessage(String peerId, int messageId) async {
