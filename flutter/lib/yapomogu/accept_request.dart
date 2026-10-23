@@ -53,10 +53,10 @@ class _YpAcceptRequestState extends State<YpAcceptRequest> {
     super.initState();
     ypAskedConnections.add(widget.client.id);
     _name = widget.client.name;
-    ypHoldWindowSize(kYpAcceptSize, Alignment.center);
+    ypHoldWindow(kYpAcceptSize, Alignment.center, focus: true);
     _tick = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
-      ypHoldWindowSize(kYpAcceptSize, Alignment.center);
+      ypHoldWindow(kYpAcceptSize, Alignment.center);
       setState(() => _left--);
       if (_left <= 0) _answer(false);
     });

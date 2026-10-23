@@ -47,10 +47,10 @@ class _YpSessionBannerState extends State<YpSessionBanner> {
     _since = _startedAt.putIfAbsent(widget.client.id, DateTime.now);
     _name = widget.client.name;
     _tick = Timer.periodic(const Duration(seconds: 1), (_) {
-      ypHoldWindowSize(kYpBannerSize, Alignment.topCenter); // the stock code may resize it after us
+      ypHoldWindow(kYpBannerSize, Alignment.topCenter); // the stock code may hide or resize it after us
       setState(() {});
     });
-    windowManager.setSizeAlignment(kYpBannerSize, Alignment.topCenter);
+    ypHoldWindow(kYpBannerSize, Alignment.topCenter, focus: true);
     _lookupName();
   }
 
@@ -82,8 +82,10 @@ class _YpSessionBannerState extends State<YpSessionBanner> {
     return '${two(d.inHours)}:${two(d.inMinutes % 60)}:${two(d.inSeconds % 60)}';
   }
 
-  /// Nobody pressed «Принять»: the technician came in with the unattended-access password.
-  bool get _byPassword => !ypAskedConnections.contains(widget.client.id);
+  /// The technician came in with the unattended-access password: that mode is on and nobody was asked.
+  /// (RustDesk may also let a recent peer back in without asking; that stays a normal green session.)
+  bool get _byPassword =>
+      !ypAskedConnections.contains(widget.client.id) && bind.mainGetOptionSync(key: kOptionApproveMode) == 'password';
 
   @override
   Widget build(BuildContext context) {
